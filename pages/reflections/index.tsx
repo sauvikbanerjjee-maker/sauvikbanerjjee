@@ -26,7 +26,7 @@ const ReflectionsPage = ({ reflections }) => {
 export async function getStaticProps() {
   async function getContent() {
     // Fetches reflection entries from Sanity using the "reflection" document schema
-    const CONTENT_QUERY = `*[_type == "reflection"] | order(publishedAt desc) {
+    const CONTENT_QUERY = `*[_type == "reflection"] | order(_updatedAt desc) {
   ...,
   author->,
   mainImage {
@@ -46,11 +46,16 @@ export async function getStaticProps() {
     return content;
   }
 
-  const reflections = await getContent();
+  const reflections = (await getContent()) || [];
+  reflections.sort(
+    (a, b) =>
+      new Date(b._updatedAt || 0).getTime() -
+      new Date(a._updatedAt || 0).getTime()
+  );
 
   return {
     props: {
-      reflections: reflections || [],
+      reflections,
     },
     revalidate: 1,
   };

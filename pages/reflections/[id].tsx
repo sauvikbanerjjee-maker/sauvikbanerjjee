@@ -77,7 +77,7 @@ export const getStaticProps = async ({ params }) => {
   });
 
   async function getContent() {
-    const CONTENT_QUERY = `*[_type == "reflection"] {
+    const CONTENT_QUERY = `*[_type == "reflection"] | order(_updatedAt desc) {
   ...,
   author->,
   mainImage {
