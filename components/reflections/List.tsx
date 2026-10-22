@@ -4,7 +4,6 @@ import { Center, Text, Box, Flex } from "@chakra-ui/react";
 import { keyframes } from "@emotion/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import moment from "moment";
 
 const shimmer = keyframes`
   0% { background-position: -200% 0; }
@@ -14,8 +13,7 @@ const shimmer = keyframes`
 const ReflectionList = ({ data, index, width }: any) => {
   const router = useRouter();
   const [imageLoaded, setImageLoaded] = useState(false);
-
-  const categoryColor = getCategoryColor(data?.categories?.[0]?.title || "");
+  const [isVerticalVideo, setIsVerticalVideo] = useState(false);
 
   const imageUrl = data?.mainImage?.asset?.url;
   const videoUrl = data?.mainVideo?.asset?.url || data?.videoUrl;
@@ -67,7 +65,8 @@ const ReflectionList = ({ data, index, width }: any) => {
         <Box
           position="relative"
           width="100%"
-          height="200px"
+          height={isVerticalVideo ? ["340px", "400px", "440px"] : "200px"}
+          transition="height 0.4s ease"
           overflow="hidden"
           sx={{
             "& img, & video": {
@@ -107,11 +106,18 @@ const ReflectionList = ({ data, index, width }: any) => {
               loop
               muted
               playsInline
+              onLoadedMetadata={(e) => {
+                const v = e.currentTarget;
+                if (v.videoHeight > v.videoWidth) {
+                  setIsVerticalVideo(true);
+                }
+              }}
               onLoadedData={() => setImageLoaded(true)}
               style={{
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
+                objectPosition: "top center",
               }}
             />
           ) : (
@@ -166,28 +172,6 @@ const ReflectionList = ({ data, index, width }: any) => {
               <span>▶</span> VIDEO
             </Box>
           )}
-
-          {/* Category badge on image */}
-          {data?.categories?.[0]?.title && (
-            <Box position="absolute" top="1rem" left="1rem" zIndex={3}>
-              <Box
-                bg={categoryColor.bg}
-                color={categoryColor.text}
-                fontSize="0.7rem"
-                fontWeight={600}
-                textTransform="uppercase"
-                letterSpacing="0.08em"
-                px="0.75rem"
-                py="0.3rem"
-                borderRadius="full"
-                backdropFilter="blur(12px)"
-                border="1px solid"
-                borderColor={categoryColor.border}
-              >
-                {data.categories[0].title}
-              </Box>
-            </Box>
-          )}
         </Box>
 
         {/* Content */}
@@ -216,16 +200,7 @@ const ReflectionList = ({ data, index, width }: any) => {
           />
 
           {/* Meta info */}
-          <Flex justifyContent="space-between" alignItems="center">
-            <Text
-              fontSize="0.72rem"
-              color="whiteAlpha.400"
-              fontWeight={500}
-              letterSpacing="0.03em"
-            >
-              {data?.publishedAt ? moment(data.publishedAt).format("MMM D, YYYY") : ""}
-            </Text>
-
+          <Flex justifyContent="flex-end" alignItems="center">
             {/* Read arrow */}
             <Flex
               alignItems="center"
@@ -264,38 +239,5 @@ const ReflectionList = ({ data, index, width }: any) => {
     </Box>
   );
 };
-
-// Helper: assign color based on category
-function getCategoryColor(category: string) {
-  const colors = {
-    Technology: {
-      bg: "rgba(59,130,246,0.2)",
-      text: "#93c5fd",
-      border: "rgba(59,130,246,0.3)",
-    },
-    AI: {
-      bg: "rgba(251,191,36,0.2)",
-      text: "#fde68a",
-      border: "rgba(251,191,36,0.3)",
-    },
-    Futurism: {
-      bg: "rgba(236,72,153,0.2)",
-      text: "#f9a8d4",
-      border: "rgba(236,72,153,0.3)",
-    },
-    Science: {
-      bg: "rgba(16,185,129,0.2)",
-      text: "#6ee7b7",
-      border: "rgba(16,185,129,0.3)",
-    },
-    Default: {
-      bg: "rgba(255,255,255,0.08)",
-      text: "whiteAlpha.700",
-      border: "rgba(255,255,255,0.12)",
-    },
-  };
-
-  return colors[category] || colors.Default;
-}
 
 export default ReflectionList;
